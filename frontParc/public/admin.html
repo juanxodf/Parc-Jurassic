@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jurassic Park — Admin</title>
+  <link rel="icon" href="/vite.svg" type="image/svg+xml" />
+</head>
+<body>
+  <nav class="navbar">
+    <span class="navbar-brand">🦕 Jurassic Park</span>
+    <div class="navbar-user">
+      <span id="navbar-user-name">—</span>
+      <span class="role-badge" id="navbar-user-role">—</span>
+      <a href="/lobby.html">Lobby</a>
+      <a href="/gameUI.html">Mapa</a>
+      <button id="logout-btn" class="btn-ghost" style="padding:4px 12px;font-size:12px">Salir</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <div class="page-header">
+      <h1>Panel de administración</h1>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="tab-usuarios">Usuarios</button>
+      <button class="tab-btn" data-tab="tab-celdas">Celdas</button>
+      <button class="tab-btn" data-tab="tab-dinosaurios">Dinosaurios</button>
+      <button class="tab-btn" data-tab="tab-simulaciones">Simulaciones</button>
+    </div>
+
+    <!-- USUARIOS -->
+    <div id="tab-usuarios" class="tab-panel">
+      <div class="grid-2" style="gap:24px">
+        <div>
+          <p class="section-title">Lista de usuarios</p>
+          <table>
+            <thead><tr><th>Nombre</th><th>Email</th><th>Rol</th><th></th></tr></thead>
+            <tbody><tr><td colspan="4" class="loader">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+        <div>
+          <p class="section-title">Crear usuario</p>
+          <div class="card">
+            <form id="create-user-form">
+              <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="name" required placeholder="Nombre completo" />
+              </div>
+              <div class="form-group">
+                <label>Nick</label>
+                <input type="text" name="nick" required placeholder="Nick único" />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" required placeholder="usuario@parque.com" />
+              </div>
+              <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" name="password" required placeholder="Mínimo 8 caracteres" />
+              </div>
+              <div class="form-group">
+                <label>Rol</label>
+                <select name="role" required>
+                  <option value="veterinario">Veterinario</option>
+                  <option value="mantenimiento">Mantenimiento</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-primary">Crear usuario</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CELDAS -->
+    <div id="tab-celdas" class="tab-panel hidden">
+      <div class="grid-2" style="gap:24px">
+        <div>
+          <p class="section-title">Celdas registradas</p>
+          <table>
+            <thead><tr><th>Nombre</th><th>Fila/Col</th><th>Seguridad</th><th>Estado</th><th></th></tr></thead>
+            <tbody><tr><td colspan="5" class="loader">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+        <div>
+          <p class="section-title">Nueva celda</p>
+          <div class="card">
+            <form id="create-celda-form">
+              <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" name="nombre" required placeholder="Ej: Sector A-1" />
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Fila</label>
+                  <input type="number" name="fila" required min="1" max="10" value="1" />
+                </div>
+                <div class="form-group">
+                  <label>Columna</label>
+                  <input type="number" name="columna" required min="1" max="10" value="1" />
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Nivel seguridad (1-10)</label>
+                  <input type="number" name="nivel_seguridad" required min="1" max="10" value="5" />
+                </div>
+                <div class="form-group">
+                  <label>Alimento (%)</label>
+                  <input type="number" name="cantidad_alimento" required min="0" value="100" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Estado</label>
+                <select name="estado" required>
+                  <option value="operativa">Operativa</option>
+                  <option value="mantenimiento">Mantenimiento</option>
+                  <option value="brecha">Brecha</option>
+                  <option value="evacuada">Evacuada</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-primary">Crear celda</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DINOSAURIOS -->
+    <div id="tab-dinosaurios" class="tab-panel hidden">
+      <div class="grid-2" style="gap:24px">
+        <div>
+          <p class="section-title">Dinosaurios registrados</p>
+          <table>
+            <thead><tr><th>Nick</th><th>Raza</th><th>Dieta</th><th>Peligrosidad</th><th></th></tr></thead>
+            <tbody><tr><td colspan="5" class="loader">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+        <div>
+          <p class="section-title">Nuevo dinosaurio</p>
+          <div class="card">
+            <form id="create-dino-form">
+              <div class="form-group">
+                <label>Nick</label>
+                <input type="text" name="nick" required placeholder="Nombre del individuo" />
+              </div>
+              <div class="form-group">
+                <label>Raza</label>
+                <select id="dino-raza-select" name="raza" required>
+                  <option value="">Cargando razas...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Edad</label>
+                <input type="number" name="edad" required min="1" value="5" />
+              </div>
+              <div class="form-group">
+                <label>Estado</label>
+                <select name="estado" required>
+                  <option value="sano">Sano</option>
+                  <option value="herido">Herido</option>
+                  <option value="enfermo">Enfermo</option>
+                  <option value="muerto">Muerto</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Celda (opcional)</label>
+                <select id="dino-celda-select" name="celda_id">
+                  <option value="">Sin asignar</option>
+                </select>
+              </div>
+              <button type="submit" class="btn-primary">Crear dinosaurio</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIMULACIONES -->
+    <div id="tab-simulaciones" class="tab-panel hidden">
+      <div class="grid-2" style="gap:24px">
+        <div>
+          <p class="section-title">Historial de simulaciones</p>
+          <table>
+            <thead><tr><th>ID</th><th>Tipo</th><th>Celda</th><th>Estado</th><th>Fecha</th></tr></thead>
+            <tbody><tr><td colspan="5" class="loader">Cargando...</td></tr></tbody>
+          </table>
+        </div>
+        <div>
+          <p class="section-title">Lanzar simulación</p>
+          <div class="card">
+            <form id="sim-form">
+              <div class="form-group">
+                <label>Celda objetivo</label>
+                <select id="sim-celda-select">
+                  <option value="">Aleatoria</option>
+                </select>
+              </div>
+              <div class="flex-row" style="margin-top:8px">
+                <button type="button" class="btn-primary" data-sim-type="normal">🔬 Simulación normal</button>
+                <button type="button" class="btn-danger" data-sim-type="brecha">⚠ Simular brecha</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

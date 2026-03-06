@@ -17,7 +17,7 @@ class AuthController extends Controller
             'nick'     => 'required|string|max:50|unique:users',
             'name'     => 'required|string|max:255',
             'email'    => 'required|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => 'required|string|min:8|confirmed',
             'role'     => 'in:admin,veterinario,mantenimiento',
         ], [
             'nick.unique'    => 'El nick ya está en uso.',
@@ -92,7 +92,7 @@ class AuthController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name'     => 'sometimes|string|max:255',
-            'password' => 'sometimes|string|min:6|confirmed',
+            'password' => 'sometimes|string|min:8|confirmed',
             'photo'    => 'sometimes|string',
         ]);
 

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jurassic Park — Mapa</title>
+  <link rel="icon" href="/vite.svg" type="image/svg+xml" />
+</head>
+<body>
+  <nav class="navbar">
+    <span class="navbar-brand">🦕 Jurassic Park</span>
+    <div class="navbar-user">
+      <span id="navbar-user-name">—</span>
+      <span class="role-badge" id="navbar-user-role">—</span>
+      <a href="/lobby.html">Lobby</a>
+      <button id="logout-btn" class="btn-ghost" style="padding:4px 12px;font-size:12px">Salir</button>
+    </div>
+  </nav>
+
+  <div class="game-layout">
+    <!-- Mapa de celdas -->
+    <div class="game-map-area">
+      <p class="section-title" style="margin-bottom:16px">Mapa del parque — haz clic en una celda</p>
+      <div id="celda-grid" class="celda-grid">
+        <p class="loader">Cargando mapa...</p>
+      </div>
+    </div>
+
+    <!-- Sidebar de detalle -->
+    <div class="game-sidebar">
+      <!-- Detalle de celda seleccionada -->
+      <div id="celda-detail">
+        <p style="color:var(--color-muted);font-size:13px">← Selecciona una celda</p>
+      </div>
+
+      <!-- Tareas de la celda -->
+      <div id="tareas-celda" class="tareas-list"></div>
+
+      <!-- Formulario nueva tarea -->
+      <div id="add-tarea-form" class="hidden">
+        <p class="section-title">Nueva tarea</p>
+        <div class="card">
+          <form>
+            <div class="form-group">
+              <label>Descripción</label>
+              <input type="text" name="descripcion" required placeholder="Describe la tarea" />
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <select name="tipo" required>
+                <option value="veterinario">Veterinaria</option>
+                <option value="mantenimiento">Mantenimiento</option>
+              </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%">Crear tarea</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jurassic Park — Acceso</title>
+  <link rel="icon" href="/vite.svg" type="image/svg+xml" />
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-box">
+      <div class="login-logo">
+        <h1>🦕 Jurassic Park</h1>
+        <p>Sistema de Gestión del Parque</p>
+      </div>
+
+      <div class="login-card">
+        <div class="login-tabs">
+          <button class="login-tab active" data-target="panel-login">Iniciar sesión</button>
+          <button class="login-tab" data-target="panel-register">Registrarse</button>
+        </div>
+
+        <!-- LOGIN -->
+        <div id="panel-login" class="login-panel">
+          <form id="loginForm" autocomplete="off">
+            <div class="alert alert-error hidden"></div>
+            <div class="form-group">
+              <label for="login-email">Email</label>
+              <input type="email" id="login-email" name="email" required placeholder="admin@jurassicpark.com" />
+            </div>
+            <div class="form-group">
+              <label for="login-password">Contraseña</label>
+              <input type="password" id="login-password" name="password" required placeholder="••••••••" />
+            </div>
+            <button type="submit" class="btn-primary login-submit" data-label="Entrar">Entrar</button>
+          </form>
+        </div>
+
+        <!-- REGISTER -->
+        <div id="panel-register" class="login-panel hidden">
+          <form id="registerForm" autocomplete="off">
+            <div class="alert alert-error hidden"></div>
+            <div class="form-group">
+              <label for="reg-name">Nombre</label>
+              <input type="text" id="reg-name" name="name" required placeholder="Tu nombre" />
+            </div>
+            <div class="form-group">
+              <label for="reg-nick">Nick</label>
+              <input type="text" id="reg-nick" name="nick" required placeholder="Tu nick único" />
+            </div>
+            <div class="form-group">
+              <label for="reg-email">Email</label>
+              <input type="email" id="reg-email" name="email" required placeholder="tu@email.com" />
+            </div>
+            <div class="form-group">
+              <label for="reg-role">Rol</label>
+              <select id="reg-role" name="role" required>
+                <option value="veterinario">Veterinario</option>
+                <option value="mantenimiento">Mantenimiento</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="reg-password">Contraseña</label>
+              <input type="password" id="reg-password" name="password" required placeholder="Mínimo 8 caracteres" />
+            </div>
+            <div class="form-group">
+              <label for="reg-confirm">Confirmar contraseña</label>
+              <input type="password" id="reg-confirm" name="password_confirmation" required placeholder="Repite la contraseña" />
+            </div>
+            <button type="submit" class="btn-primary login-submit" data-label="Crear cuenta">Crear cuenta</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
