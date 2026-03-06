@@ -1,0 +1,204 @@
+@url = http://localhost:8000/api
+@token = ahn2WyYoyIQ0JDorolD1OQrXXxy7vEx11OE9CNA8602e709d
+
+### ═══════════════════════════
+### LOGIN
+### ═══════════════════════════
+
+POST {{url}}/login
+Content-Type: application/json
+
+{
+  "email": "admin@jurassicpark.com",
+  "password": "password"
+}
+
+
+### ═══════════════════════════
+### QUIÉN SOY
+### ═══════════════════════════
+
+GET {{url}}/me
+Accept: application/json
+Authorization: Bearer {{token}}
+
+### ═══════════════════════════
+### CELDAS
+### ═══════════════════════════
+
+### TODAS LAS CELDAS
+GET {{url}}/celdas
+Authorization: Bearer {{token}}
+
+### CELDA POR ID
+GET {{url}}/celdas/1
+Authorization: Bearer {{token}}
+
+### CREAR CELDA
+POST {{url}}/celdas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nombre": "Sector D1",
+  "fila": 3,
+  "columna": 0,
+  "nivel_seguridad": 7,
+  "cantidad_alimento": 100,
+  "averias_pendientes": 0,
+  "estado": "operativa"
+}
+
+### ACTUALIZAR CELDA
+PUT {{url}}/celdas/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nivel_seguridad": 10,
+  "cantidad_alimento": 90
+}
+
+### ELIMINAR CELDA
+DELETE {{url}}/celdas/10
+Authorization: Bearer {{token}}
+
+### ═══════════════════════════
+### DINOSAURIOS
+### ═══════════════════════════
+
+### LISTAR DINOSAURIOS
+GET {{url}}/dinosaurios
+Authorization: Bearer {{token}}
+
+### LISTAR RAZAS
+GET {{url}}/dinosaurios/razas
+Authorization: Bearer {{token}}
+
+### OBTENER DINOSAURIO POR ID
+GET {{url}}/dinosaurios/1
+Authorization: Bearer {{token}}
+
+### CREAR DINOSAURIO
+POST {{url}}/dinosaurios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nick": "Charlie",
+  "raza": "Velociraptor",
+  "edad": 5,
+  "celda_id": 5
+}
+
+### ACTUALIZAR DINOSAURIO
+PUT {{url}}/dinosaurios/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "edad": 16,
+  "estado": "herido"
+}
+
+### ELIMINAR DINOSAURIO
+DELETE {{url}}/dinosaurios/9
+Authorization: Bearer {{token}}
+
+### ═══════════════════════════
+### USUARIOS
+### ═══════════════════════════
+
+### LISTAR USUARIOS
+GET {{url}}/usuarios
+Authorization: Bearer {{token}}
+
+### OBTENER USUARIO POR ID
+GET {{url}}/usuarios/2
+Authorization: Bearer {{token}}
+
+### CREAR USUARIO
+POST {{url}}/usuarios
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "nick": "grant",
+  "name": "Alan Grant",
+  "password": "password",
+  "email": "grant@jurassicpark.com",
+  "role": "veterinario"
+}
+
+### ACTUALIZAR USUARIO
+PUT {{url}}/usuarios/2
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "Ellie Sattler PhD"
+}
+
+### ELIMINAR USUARIO
+DELETE {{url}}/usuarios/4
+Authorization: Bearer {{token}}
+
+### ═══════════════════════════
+### TAREAS
+### ═══════════════════════════
+
+### LISTAR TAREAS
+GET {{url}}/tareas
+Authorization: Bearer {{token}}
+
+### OBTENER TAREA POR ID
+POST {{url}}/tareas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "celda_id": 1,
+  "user_id": 2,
+  "tipo": "veterinario",
+  "descripcion": "Revisión rutinaria Sector A1"
+}
+
+### ACTUALIZAR ESTADO DE TAREA
+PATCH {{url}}/tareas/2/iniciar
+Authorization: Bearer {{token}}
+
+### FINALIZAR TAREA
+PATCH {{url}}/tareas/2/finalizar
+Authorization: Bearer {{token}}
+
+### ELIMINAR TAREA
+DELETE {{url}}/tareas/3
+Authorization: Bearer {{token}}
+
+### ═══════════════════════════
+### SIMULACIONES
+### ═══════════════════════════
+
+### CREAR SIMULACIÓN NORMAL
+POST {{url}}/simulaciones/normal
+Authorization: Bearer {{token}}
+
+### CREAR SIMULACIÓN DE BRECHA DE SEGURIDAD
+POST {{url}}/simulaciones/brecha
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "celda_id": 5
+}
+
+### LISTAR SIMULACIONES
+GET {{url}}/simulaciones
+Authorization: Bearer {{token}}
+
+### ═══════════════════════════
+### LOGOUT
+### ═══════════════════════════
+
+POST {{url}}/logout
+Authorization: Bearer {{token}}

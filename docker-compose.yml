@@ -1,0 +1,74 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: jurassic_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: jurassic_park
+      MYSQL_USER: jurassic
+      MYSQL_PASSWORD: jurassic123
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: jurassic_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: jurassic
+      PMA_PASSWORD: jurassic123
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+
+  backend:
+    build:
+      context: ./backParc
+      dockerfile: Dockerfile
+    container_name: jurassic_backend
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backParc:/var/www
+    ports:
+      - "8000:8000"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: jurassic_park
+      DB_USERNAME: jurassic
+      DB_PASSWORD: jurassic123
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "composer install --no-interaction &&
+             php artisan migrate --force --no-interaction &&
+             (php artisan db:seed --force --no-interaction || true) &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+
+  frontend:
+    image: node:20
+    container_name: jurassic_frontend
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./frontParc:/app
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    command: >
+      sh -c "npm install &&
+             npm run dev -- --host"
+
+volumes:
+  db_data:
