@@ -1,6 +1,7 @@
 import { loginRequest, registerRequest } from '../providers/auth.provider.ts';
 import { saveSession } from '../models/auth.model.ts';
 import { ROUTES } from '../constantes.ts';
+import { showError } from '../services/toast.ts';
 import axios from 'axios';
 
 export function initLoginForm(): void {
@@ -34,7 +35,7 @@ function setupLoginForm(): void {
     const errorEl  = form.querySelector<HTMLElement>('.alert-error');
     const btn      = form.querySelector<HTMLButtonElement>('button[type="submit"]');
 
-    clearError(errorEl);
+    clearInlineError(errorEl);
     setLoading(btn, true);
 
     try {
@@ -42,7 +43,9 @@ function setupLoginForm(): void {
       saveSession(token, user);
       window.location.href = user.role === 'admin' ? ROUTES.ADMIN : ROUTES.LOBBY;
     } catch (err) {
-      showError(errorEl, extractMessage(err));
+      const msg = extractMessage(err);
+      showError(msg);
+      setInlineError(errorEl, msg);
     } finally {
       setLoading(btn, false);
     }
@@ -64,10 +67,12 @@ function setupRegisterForm(): void {
     const errorEl  = form.querySelector<HTMLElement>('.alert-error');
     const btn      = form.querySelector<HTMLButtonElement>('button[type="submit"]');
 
-    clearError(errorEl);
+    clearInlineError(errorEl);
 
     if (password !== confirm) {
-      showError(errorEl, 'Las contraseñas no coinciden.');
+      const msg = 'Las contraseñas no coinciden.';
+      showError(msg);
+      setInlineError(errorEl, msg);
       return;
     }
 
@@ -77,20 +82,22 @@ function setupRegisterForm(): void {
       saveSession(token, user);
       window.location.href = user.role === 'admin' ? ROUTES.ADMIN : ROUTES.LOBBY;
     } catch (err) {
-      showError(errorEl, extractMessage(err));
+      const msg = extractMessage(err);
+      showError(msg);
+      setInlineError(errorEl, msg);
     } finally {
       setLoading(btn, false);
     }
   });
 }
 
-function showError(el: HTMLElement | null, msg: string): void {
+function setInlineError(el: HTMLElement | null, msg: string): void {
   if (!el) return;
   el.textContent = msg;
   el.classList.remove('hidden');
 }
 
-function clearError(el: HTMLElement | null): void {
+function clearInlineError(el: HTMLElement | null): void {
   if (!el) return;
   el.textContent = '';
   el.classList.add('hidden');
