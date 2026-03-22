@@ -10,9 +10,8 @@ export function initLoginForm(): void {
 }
 
 function setupTabs(): void {
-  const tabs = document.querySelectorAll<HTMLButtonElement>('.login-tab');
+  const tabs   = document.querySelectorAll<HTMLButtonElement>('.login-tab');
   const panels = document.querySelectorAll<HTMLElement>('.login-panel');
-
   tabs.forEach(tab => {
     tab.addEventListener('click', () => {
       const target = tab.dataset['target']!;
@@ -68,7 +67,7 @@ function setupRegisterForm(): void {
     clearError(errorEl);
 
     if (password !== confirm) {
-      showError(errorEl, 'Las contraseñas no coinciden');
+      showError(errorEl, 'Las contraseñas no coinciden.');
       return;
     }
 
@@ -90,41 +89,27 @@ function showError(el: HTMLElement | null, msg: string): void {
   el.textContent = msg;
   el.classList.remove('hidden');
 }
+
 function clearError(el: HTMLElement | null): void {
   if (!el) return;
   el.textContent = '';
   el.classList.add('hidden');
 }
+
 function setLoading(btn: HTMLButtonElement | null, loading: boolean): void {
   if (!btn) return;
-  btn.disabled = loading;
-  btn.textContent = loading ? 'Cargando...' : btn.dataset['label'] ?? btn.textContent;
+  btn.disabled    = loading;
+  btn.textContent = loading ? 'Cargando...' : (btn.dataset['label'] ?? btn.textContent);
 }
+
 function extractMessage(err: unknown): string {
   if (axios.isAxiosError(err)) {
-    const status = err.response?.status;
-    const url = err.config?.url ?? '';
-    const data = err.response?.data as { message?: string } | Record<string, string[]>;
-
-    if (status === 419) {
-      return 'No te pudimos iniciar sesión porque el servidor esperaba otra forma de acceso. Reinicia backend y vuelve a probar.';
+    const data = err.response?.data as { message?: string; errors?: Record<string, string[]> };
+    if (data?.errors) {
+      const first = Object.values(data.errors).flat()[0];
+      if (first) return first;
     }
-    if (status === 401) {
-      return 'El email o la contraseña no coinciden.';
-    }
-    if (status === 404 && (url.includes('/login') || url.includes('/register'))) {
-      return 'No encontramos la ruta de acceso. El frontend no está llegando al endpoint correcto del backend.';
-    }
-    if (status === 422 && data && typeof data === 'object') {
-      const firstError = Object.values(data).find(v => Array.isArray(v) && v.length > 0) as string[] | undefined;
-      if (firstError?.[0]) return firstError[0];
-      return 'Hay datos incompletos o incorrectos. Revisa los campos e inténtalo de nuevo.';
-    }
-    if (status && status >= 500) {
-      return 'El servidor tuvo un problema interno. No es un fallo de tus datos.';
-    }
-    if (typeof data?.message === 'string') return data.message;
-    return 'No pudimos completar la operación. Inténtalo de nuevo en unos segundos.';
+    return data?.message ?? 'Error al iniciar sesión.';
   }
-  return 'No pudimos conectar con el servidor.';
+  return 'No se pudo conectar con el servidor.';
 }

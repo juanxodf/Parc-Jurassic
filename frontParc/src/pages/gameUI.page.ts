@@ -4,6 +4,7 @@ import { getCeldas } from '../providers/celdas.provider.ts';
 import { getTareas, iniciarTarea, finalizarTarea, createTarea } from '../providers/tareas.provider.ts';
 import { getEcho, isRealtimeEnabled } from '../echo.ts';
 import { ROUTES, NIVEL_PELIGROSIDAD_LABEL, ESTADO_TAREA_LABEL } from '../constantes.ts';
+import { showError, showSuccess, showInfo } from '../services/toast.ts';
 import type { Celda, Tarea } from '../types/index.ts';
 
 let selectedCelda: Celda | null = null;
@@ -14,7 +15,6 @@ export async function initGameUI(): Promise<void> {
     window.location.href = ROUTES.LOGIN;
     return;
   }
-
   renderNavbar();
   setupLogout();
   await loadGrid();
@@ -22,16 +22,16 @@ export async function initGameUI(): Promise<void> {
 }
 
 function renderNavbar(): void {
-  const user = getUser();
-  const nameEl = document.getElementById('navbar-user-name');
-  const roleEl = document.getElementById('navbar-user-role');
+  const user       = getUser();
+  const nameEl     = document.getElementById('navbar-user-name');
+  const roleEl     = document.getElementById('navbar-user-role');
   const navbarUser = document.querySelector('.navbar-user');
   if (nameEl && user) nameEl.textContent = user.name;
   if (roleEl && user) roleEl.textContent = user.role;
   if (user?.role === 'admin' && navbarUser && !document.getElementById('admin-link')) {
-    const adminLink = document.createElement('a');
-    adminLink.id = 'admin-link';
-    adminLink.href = ROUTES.ADMIN;
+    const adminLink     = document.createElement('a');
+    adminLink.id        = 'admin-link';
+    adminLink.href      = ROUTES.ADMIN;
     adminLink.textContent = 'Admin';
     navbarUser.insertBefore(adminLink, document.getElementById('logout-btn'));
   }
@@ -48,27 +48,27 @@ function setupLogout(): void {
 async function loadGrid(): Promise<void> {
   const gridEl = document.getElementById('celda-grid');
   if (!gridEl) return;
-
   gridEl.innerHTML = '<p class="loader">Cargando mapa...</p>';
 
-  const [celdas, tareas] = await Promise.all([
-    getCeldas().catch(() => [] as Celda[]),
-    getTareas().catch(() => [] as Tarea[]),
-  ]);
+  try {
+    const [celdas, tareas] = await Promise.all([getCeldas(), getTareas()]);
+    allTareas = tareas;
+    gridEl.innerHTML = '';
 
-  allTareas = tareas;
-  gridEl.innerHTML = '';
+    if (celdas.length === 0) {
+      gridEl.innerHTML = '<p class="loader">Sin celdas registradas.</p>';
+      return;
+    }
 
-  if (celdas.length === 0) {
-    gridEl.innerHTML = '<p class="loader">Sin celdas registradas.</p>';
-    return;
+    celdas.forEach(celda => {
+      const card = buildCeldaCard(celda);
+      card.addEventListener('click', () => selectCelda(celda));
+      gridEl.appendChild(card);
+    });
+  } catch {
+    gridEl.innerHTML = '<p class="loader" style="color:var(--color-danger)">Error al cargar el mapa.</p>';
+    showError('No se pudo cargar el mapa del parque.');
   }
-
-  celdas.forEach(celda => {
-    const card = buildCeldaCard(celda);
-    card.addEventListener('click', () => selectCelda(celda));
-    gridEl.appendChild(card);
-  });
 }
 
 function buildCeldaCard(c: Celda): HTMLElement {
@@ -76,7 +76,8 @@ function buildCeldaCard(c: Celda): HTMLElement {
   div.className = `celda-card estado-${c.estado}`;
   div.dataset['celdaId'] = String(c.id);
 
-  const dinos = c.dinosaurios ?? [];
+  const dinos     = c.dinosaurios ?? [];
+  const tareasPend = allTareas.filter(t => t.celda_id === c.id && t.estado !== 'finalizada').length;
 
   div.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:flex-start">
@@ -84,17 +85,18 @@ function buildCeldaCard(c: Celda): HTMLElement {
       <div class="celda-estado-dot"></div>
     </div>
     <span class="celda-dinos">${dinos.length} dinos</span>
-    <span style="font-size:9px;color:var(--color-muted)">Seg. ${c.nivel_seguridad}</span>`;
+    <span style="font-size:9px;color:var(--color-muted)">
+      Seg. ${c.nivel_seguridad} · ${c.cantidad_alimento}% alim.
+      ${tareasPend > 0 ? `· <span style="color:var(--color-warning)">${tareasPend} tarea(s)</span>` : ''}
+    </span>`;
 
   return div;
 }
 
 function selectCelda(celda: Celda): void {
   selectedCelda = celda;
-
   document.querySelectorAll('.celda-card').forEach(c => c.classList.remove('selected'));
   document.querySelector(`[data-celda-id="${celda.id}"]`)?.classList.add('selected');
-
   renderCeldaDetail(celda);
   renderTareasCelda(celda.id);
   renderAddTareaForm(celda.id);
@@ -105,7 +107,6 @@ function renderCeldaDetail(c: Celda): void {
   if (!el) return;
 
   const dinos = c.dinosaurios ?? [];
-
   el.innerHTML = `
     <div class="celda-detail">
       <h3>${c.nombre}</h3>
@@ -131,7 +132,6 @@ function renderTareasCelda(celdaId: number): void {
   if (!el) return;
 
   const tareas = allTareas.filter(t => t.celda_id === celdaId);
-
   el.innerHTML = `<p class="section-title">Tareas de la celda</p>`;
 
   if (tareas.length === 0) {
@@ -141,8 +141,11 @@ function renderTareasCelda(celdaId: number): void {
 
   el.innerHTML += tareas.map(t => `
     <div class="tarea-item">
-      <div class="tarea-titulo">${t.descripcion ?? 'Tarea sin descripción'}</div>
-      <div class="tarea-meta">${ESTADO_TAREA_LABEL[t.estado] ?? t.estado} · ${t.tipo}</div>
+      <div class="tarea-titulo">${t.descripcion ?? 'Sin descripción'}</div>
+      <div class="tarea-meta">
+        ${ESTADO_TAREA_LABEL[t.estado] ?? t.estado} · ${t.tipo}
+        ${t.user ? `· <span style="color:var(--color-primary)">${t.user.nick ?? t.user.name}</span>` : ''}
+      </div>
       <div class="tarea-actions">
         ${t.estado === 'pendiente'
           ? `<button class="btn-ghost" style="padding:4px 8px;font-size:11px" data-iniciar="${t.id}">Iniciar</button>`
@@ -155,30 +158,43 @@ function renderTareasCelda(celdaId: number): void {
   el.querySelectorAll<HTMLButtonElement>('[data-iniciar]').forEach(btn => {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      await iniciarTarea(parseInt(btn.dataset['iniciar']!)).catch(() => {});
-      await refreshTareas(celdaId);
+      try {
+        await iniciarTarea(parseInt(btn.dataset['iniciar']!));
+        showInfo('Tarea iniciada.');
+        await refreshTareas(celdaId);
+      } catch {
+        btn.disabled = false;
+      }
     });
   });
 
   el.querySelectorAll<HTMLButtonElement>('[data-finalizar]').forEach(btn => {
     btn.addEventListener('click', async () => {
       btn.disabled = true;
-      await finalizarTarea(parseInt(btn.dataset['finalizar']!)).catch(() => {});
-      await refreshTareas(celdaId);
+      try {
+        await finalizarTarea(parseInt(btn.dataset['finalizar']!));
+        showSuccess('Tarea completada.');
+        await refreshTareas(celdaId);
+      } catch {
+        btn.disabled = false;
+      }
     });
   });
 }
 
 async function refreshTareas(celdaId: number): Promise<void> {
-  allTareas = await getTareas().catch(() => allTareas);
-  renderTareasCelda(celdaId);
+  try {
+    allTareas = await getTareas();
+    renderTareasCelda(celdaId);
+  } catch {
+    showError('No se pudieron actualizar las tareas.');
+  }
 }
 
 function renderAddTareaForm(celdaId: number): void {
   const el = document.getElementById('add-tarea-form');
   if (!el || el.dataset['bound']) return;
   el.dataset['bound'] = '1';
-
   el.classList.remove('hidden');
 
   el.querySelector('form')?.addEventListener('submit', async (e) => {
@@ -187,7 +203,6 @@ function renderAddTareaForm(celdaId: number): void {
     const data = new FormData(form);
     const btn  = form.querySelector<HTMLButtonElement>('button[type="submit"]');
     if (btn) btn.disabled = true;
-
     try {
       const user = getUser();
       await createTarea({
@@ -197,9 +212,8 @@ function renderAddTareaForm(celdaId: number): void {
         user_id:     user?.id,
       });
       form.reset();
+      showSuccess('Tarea creada correctamente.');
       await refreshTareas(celdaId);
-    } catch {
-      // silently fail
     } finally {
       if (btn) btn.disabled = false;
     }
@@ -210,22 +224,20 @@ function subscribeRealtime(): void {
   if (!isRealtimeEnabled()) return;
   try {
     const echo = getEcho();
-
     echo.channel('celdas').listen('.celda.updated', async () => {
+      showInfo('Mapa actualizado.');
       await loadGrid();
       if (selectedCelda) {
-        const celdas = await getCeldas().catch(() => [] as Celda[]);
+        const celdas  = await getCeldas().catch(() => [] as Celda[]);
         const updated = celdas.find(c => c.id === selectedCelda!.id);
         if (updated) selectCelda(updated);
       }
     });
-
     echo.channel('tareas').listen('.tarea.updated', async () => {
       allTareas = await getTareas().catch(() => allTareas);
       if (selectedCelda) renderTareasCelda(selectedCelda.id);
     });
   } catch {
-    // Echo no disponible, modo sin realtime
-    console.warn('Realtime no disponible. Continuando en modo offline.');
+    console.warn('Realtime no disponible.');
   }
 }
