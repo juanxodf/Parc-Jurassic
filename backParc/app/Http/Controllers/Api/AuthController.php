@@ -3,72 +3,58 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    public function register(Request $request): JsonResponse
+    public function register(RegisterRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'nick'     => 'required|string|max:50|unique:users',
-            'name'     => 'required|string|max:255',
-            'email'    => 'required|email|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'role'     => 'in:admin,veterinario,mantenimiento',
-        ], [
-            'nick.unique'        => 'El nick ya está en uso.',
-            'email.unique'       => 'El email ya está registrado.',
-            'password.confirmed' => 'Las contraseñas no coinciden.',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $role = $request->input('role', 'veterinario');
+        $data = $request->validated();
+        $role = $data['role'] ?? 'veterinario';
 
         $user = User::create([
-            'nick'     => $request->nick,
-            'name'     => $request->name,
-            'email'    => $request->email,
-            'password' => Hash::make($request->password),
-            'role'     => $role,
+            'nick' => $data['nick'],
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role' => $role,
         ]);
 
         $abilities = $role === 'admin' ? ['read', 'admin'] : ['read'];
-        $token     = $user->createToken('auth_token', $abilities)->plainTextToken;
+        $token = $user->createToken('auth_token', $abilities)->plainTextToken;
 
-        return response()->json(['token' => $token, 'user' => $user], 201);
+        return response()->json([
+            'token' => $token,
+            'user' => new UserResource($user),
+        ], 201);
     }
 
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'email'    => 'required|email',
-            'password' => 'required|string',
-        ]);
+        $data = $request->validated();
+        $user = User::where('email', $data['email'])->first();
 
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (! $user || ! Hash::check($data['password'], $user->password)) {
             return response()->json(['message' => 'Credenciales incorrectas.'], 401);
         }
 
         $user->tokens()->delete();
 
         $abilities = $user->role === 'admin' ? ['read', 'admin'] : ['read'];
-        $token     = $user->createToken('auth_token', $abilities)->plainTextToken;
+        $token = $user->createToken('auth_token', $abilities)->plainTextToken;
 
-        return response()->json(['token' => $token, 'user' => $user], 200);
+        return response()->json([
+            'token' => $token,
+            'user' => new UserResource($user),
+        ], 200);
     }
 
     public function logout(Request $request): JsonResponse
@@ -80,23 +66,13 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        return response()->json($request->user(), 200);
+        return response()->json(new UserResource($request->user()), 200);
     }
 
-    public function updateProfile(Request $request): JsonResponse
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
     {
-        $validator = Validator::make($request->all(), [
-            'name'     => 'sometimes|string|max:255',
-            'password' => 'sometimes|string|min:8|confirmed',
-            'photo'    => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
-        }
-
         $user = $request->user();
-        $data = [];
+        $data = $request->safe()->except('photo');
 
         if ($request->filled('name')) {
             $data['name'] = $request->name;
@@ -116,6 +92,6 @@ class AuthController extends Controller
 
         $user->update($data);
 
-        return response()->json($user->fresh(), 200);
+        return response()->json(new UserResource($user->fresh()), 200);
     }
 }
