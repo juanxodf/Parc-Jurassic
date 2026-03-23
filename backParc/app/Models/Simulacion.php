@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Simulacion extends Model
 {
+    protected $table = 'simulaciones';
+
     protected $fillable = [
         'tipo',
         'user_id',

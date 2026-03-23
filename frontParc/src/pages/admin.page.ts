@@ -3,7 +3,13 @@ import { logoutRequest } from '../providers/auth.provider.ts';
 import { getUsuarios, createUsuario, deleteUsuario } from '../providers/usuarios.provider.ts';
 import { getCeldas, createCelda, deleteCelda } from '../providers/celdas.provider.ts';
 import { getDinosaurios, getRazas, createDinosaurio, deleteDinosaurio } from '../providers/dinosaurios.provider.ts';
-import { getSimulaciones, simulacionNormal, simulacionBrecha } from '../providers/simulaciones.provider.ts';
+import {
+  getSimulaciones,
+  simulacionNormal,
+  simulacionBrecha,
+  type ResultadoBrecha,
+  type ResultadoNormal,
+} from '../providers/simulaciones.provider.ts';
 import { ROUTES, NIVEL_PELIGROSIDAD_LABEL } from '../constantes.ts';
 import { showError, showSuccess, showInfo, showWarning } from '../services/toast.ts';
 import type { User, Celda, Dinosaurio, Simulacion } from '../types/index.ts';
@@ -15,6 +21,7 @@ export async function initAdmin(): Promise<void> {
   }
   renderNavbar();
   setupLogout();
+  setupResultModal();
   setupTabs();
   await loadActiveTab('tab-usuarios');
 }
@@ -314,12 +321,12 @@ async function loadSimulaciones(): Promise<void> {
   }
 
   if (!tbody) return;
-  tbody.innerHTML = '<tr><td colspan="5" class="loader">Cargando...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" class="loader">Cargando...</td></tr>';
 
   try {
     const sims = await getSimulaciones();
     if (sims.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="loader">Sin simulaciones registradas.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="loader">Sin simulaciones registradas.</td></tr>';
       return;
     }
     tbody.innerHTML = sims.map((s: Simulacion) => `
@@ -329,9 +336,25 @@ async function loadSimulaciones(): Promise<void> {
         <td>${s.celda?.nombre ?? 'Aleatoria'}</td>
         <td><span class="badge badge-gray">${s.estado ?? '—'}</span></td>
         <td style="font-size:11px;color:var(--color-muted)">${new Date(s.created_at ?? '').toLocaleString('es-ES')}</td>
+        <td>
+          <button
+            class="btn-ghost"
+            style="padding:4px 10px;font-size:11px"
+            data-view-sim="${s.id}"
+          >Ver</button>
+        </td>
       </tr>`).join('');
+
+    tbody.querySelectorAll<HTMLButtonElement>('[data-view-sim]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const simId = Number.parseInt(btn.dataset['viewSim'] ?? '0', 10);
+        const sim = sims.find(item => item.id === simId);
+        if (!sim) return;
+        openResultModal(renderResultadoHistorial(sim));
+      });
+    });
   } catch {
-    tbody.innerHTML = '<tr><td colspan="5" class="loader">Error al cargar simulaciones.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="6" class="loader">Error al cargar simulaciones.</td></tr>';
     showError('No se pudo cargar el historial de simulaciones.');
   }
 }
@@ -347,23 +370,163 @@ function setupSimulacionForm(): void {
       const sel     = form.querySelector<HTMLSelectElement>('#sim-celda-select');
       const parsed  = parseInt(sel?.value ?? '0');
       const celdaId = Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+      const buttons = Array.from(form.querySelectorAll<HTMLButtonElement>('[data-sim-type]'));
 
       if (tipo === 'brecha' && !celdaId) {
         showWarning('Selecciona una celda o se elegirá una aleatoriamente.');
       }
 
-      btn.disabled = true;
+      buttons.forEach(button => { button.disabled = true; });
       showInfo('Ejecutando simulación…');
 
       try {
-        if (tipo === 'normal') await simulacionNormal(celdaId);
-        if (tipo === 'brecha') await simulacionBrecha(celdaId);
+        if (tipo === 'normal') {
+          const result = await simulacionNormal(celdaId);
+          openResultModal(renderResultadoNormal(result));
+        }
+
+        if (tipo === 'brecha') {
+          const result = await simulacionBrecha(celdaId);
+          openResultModal(renderResultadoBrecha(result));
+        }
+
         showSuccess(`Simulación de tipo "${tipo}" completada.`);
         await loadSimulaciones();
       } finally {
-        btn.disabled = false;
+        buttons.forEach(button => { button.disabled = false; });
       }
     });
+  });
+}
+
+function setupResultModal(): void {
+  const modal = document.getElementById('result-modal');
+  const closeBtn = document.getElementById('modal-close-btn');
+
+  if (!modal || !closeBtn || modal.dataset['bound']) return;
+
+  modal.dataset['bound'] = '1';
+  modal.classList.add('hidden');
+
+  closeBtn.addEventListener('click', closeResultModal);
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) closeResultModal();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') closeResultModal();
+  });
+}
+
+function openResultModal(content: string): void {
+  const modal = document.getElementById('result-modal');
+  const contentEl = document.getElementById('result-modal-content');
+
+  if (!modal || !contentEl) return;
+
+  contentEl.innerHTML = content;
+  modal.classList.remove('hidden');
+}
+
+function closeResultModal(): void {
+  const modal = document.getElementById('result-modal');
+  const contentEl = document.getElementById('result-modal-content');
+
+  if (!modal || !contentEl) return;
+
+  modal.classList.add('hidden');
+  contentEl.innerHTML = '';
+}
+
+function renderResultadoNormal(result: ResultadoNormal): string {
+  const rows = result.resultados.map((item) => `
+    <tr>
+      <td>${item.nombre}</td>
+      <td>${item.fila}/${item.columna}</td>
+      <td>${item.alimento_anterior} → ${item.alimento_actual}</td>
+      <td>${item.averias}</td>
+      <td>${item.alertas.length > 0 ? item.alertas.join(', ') : 'Sin alertas'}</td>
+    </tr>
+  `).join('');
+
+  return `
+    <div class="sim-result">
+      <p class="section-title">Resultado de simulación normal</p>
+      <div class="sim-summary">
+        <span class="badge badge-green">Celdas: ${result.resumen.total_celdas}</span>
+        <span class="badge ${result.resumen.requieren_atencion > 0 ? 'badge-yellow' : 'badge-gray'}">
+          Requieren atención: ${result.resumen.requieren_atencion}
+        </span>
+      </div>
+      <table>
+        <thead>
+          <tr><th>Celda</th><th>Posición</th><th>Alimento</th><th>Averías</th><th>Alertas</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderResultadoBrecha(result: ResultadoBrecha): string {
+  const data = result.resultado;
+  const dinosaurios = data.dinosaurios_en_riesgo.length > 0
+    ? `
+      <ul class="sim-list">
+        ${data.dinosaurios_en_riesgo.map((dino) => `
+          <li>${dino.nick} (${dino.raza}) - ${dino.peligrosidad}</li>
+        `).join('')}
+      </ul>
+    `
+    : '<p class="loader" style="padding:12px 0">No hay dinosaurios carnívoros implicados.</p>';
+
+  return `
+    <div class="sim-result">
+      <p class="section-title">Resultado de simulación de brecha</p>
+      <div class="sim-summary">
+        <span class="badge ${data.fuga_ocurre ? 'badge-red' : 'badge-green'}">
+          ${data.fuga_ocurre ? 'Brecha activa' : 'Brecha contenida'}
+        </span>
+        <span class="badge badge-gray">Estado final: ${data.estado_final}</span>
+      </div>
+      <div class="card" style="padding:16px;margin-bottom:16px">
+        <p><strong>Celda:</strong> ${data.celda.nombre} (${data.celda.fila}/${data.celda.columna})</p>
+        <p><strong>Probabilidad:</strong> ${data.probabilidad_fuga}%</p>
+        <p><strong>Tirada:</strong> ${data.tirada}</p>
+      </div>
+      <p class="section-title">Detalles</p>
+      <ul class="sim-list">
+        ${data.detalles.map(detalle => `<li>${detalle}</li>`).join('')}
+      </ul>
+      <p class="section-title" style="margin-top:16px">Dinosaurios en riesgo</p>
+      ${dinosaurios}
+    </div>
+  `;
+}
+
+function renderResultadoHistorial(sim: Simulacion): string {
+  if (sim.tipo === 'normal') {
+    const resultado = sim.resultado as {
+      celdas?: ResultadoNormal['resultados'];
+    };
+    const resultados = resultado.celdas ?? [];
+
+    return renderResultadoNormal({
+      simulacion_id: sim.id,
+      tipo: 'normal',
+      resultados,
+      resumen: {
+        total_celdas: resultados.length,
+        requieren_atencion: resultados.filter(item => item.requiere_atencion).length,
+      },
+    });
+  }
+
+  const resultado = sim.resultado as ResultadoBrecha['resultado'];
+
+  return renderResultadoBrecha({
+    simulacion_id: sim.id,
+    resultado,
   });
 }
 

@@ -110,26 +110,12 @@ class AuthController extends Controller
             if ($user->photo) {
                 Storage::disk('public')->delete($user->photo);
             }
-            $path         = $request->file('photo')->store('avatars', 'public');
+            $path = $request->file('photo')->store('avatars', 'public');
             $data['photo'] = $path;
         }
 
         $user->update($data);
 
-        if ($request->hasFile('photo')) {
-            if ($user->photo) {
-                Storage::disk('public')->delete($user->photo);
-            }
-        $path = $request->file('photo')->store('avatars', 'public');
-        $data['photo'] = $path;
-        }
-
-        $user->update($data);
-
-        $user->photo_url = $user->photo
-            ? asset('storage/' . $user->photo)
-            : null;
-            
-        return response()->json($user, 200);
+        return response()->json($user->fresh(), 200);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\CeldaUpdated;
 use App\Models\Celda;
 use App\Models\Simulacion;
 use Illuminate\Http\JsonResponse;
@@ -13,23 +12,22 @@ class SimulacionController extends Controller
 {
     public function normal(Request $request): JsonResponse
     {
-        $celdas = Celda::with('dinosaurios')->get();
+        $celdas    = Celda::with('dinosaurios')->get();
         $resultados = [];
 
         foreach ($celdas as $celda) {
-            $bajada     = rand(10, 35);
-            $nuevaComida = max(0, $celda->cantidad_alimento - $bajada);
+            $bajada      = rand(10, 35);
+            $nuevaComida  = max(0, $celda->cantidad_alimento - $bajada);
             $nuevasAverias = $celda->averias_pendientes + rand(0, 3);
 
             $celda->update([
                 'cantidad_alimento'  => $nuevaComida,
                 'averias_pendientes' => $nuevasAverias,
             ]);
-            broadcast(new CeldaUpdated($celda->fresh(), 'updated'));
 
             $alertas = [];
-            if ($nuevaComida < 20)        $alertas[] = 'Alimento crítico';
-            if ($nuevasAverias > 3)       $alertas[] = 'Muchas averías pendientes';
+            if ($nuevaComida < 20)  $alertas[] = 'Alimento crítico';
+            if ($nuevasAverias > 3) $alertas[] = 'Muchas averías pendientes';
             if ($nuevaComida < 10 && $celda->dinosaurios->count() > 0) {
                 $alertas[] = 'Dinosaurios agresivos por hambre';
             }
@@ -57,6 +55,10 @@ class SimulacionController extends Controller
             'simulacion_id' => $sim->id,
             'tipo'          => 'normal',
             'resultados'    => $resultados,
+            'resumen'       => [
+                'total_celdas'     => count($resultados),
+                'requieren_atencion' => count(array_filter($resultados, fn($r) => $r['requiere_atencion'])),
+            ],
         ], 200);
     }
 
@@ -78,7 +80,6 @@ class SimulacionController extends Controller
             return response()->json(['message' => 'No hay celdas disponibles.'], 422);
         }
 
-        // Algoritmo de probabilidad
         $pesoSeguridad = (10 - $celda->nivel_seguridad) * 8;
         $pesoPeligro   = min(50, $celda->dinosaurios->sum(function ($d) {
             $pesos = ['bajo' => 1, 'medio' => 2, 'alto' => 3, 'muy_alto' => 5, 'extremo' => 8, 'critico' => 12];
@@ -96,7 +97,6 @@ class SimulacionController extends Controller
 
         if ($fugaOcurre) {
             $celda->update(['estado' => 'brecha']);
-            broadcast(new CeldaUpdated($celda->fresh(), 'updated'));
             $estadoFinal = 'desastre';
             $detalles[]  = "BRECHA EN {$celda->nombre}";
 
@@ -113,12 +113,20 @@ class SimulacionController extends Controller
         }
 
         $resultado = [
-            'celda'             => ['id' => $celda->id, 'nombre' => $celda->nombre, 'fila' => $celda->fila, 'columna' => $celda->columna],
+            'celda'             => [
+                'id'      => $celda->id,
+                'nombre'  => $celda->nombre,
+                'fila'    => $celda->fila,
+                'columna' => $celda->columna,
+            ],
             'probabilidad_fuga' => $probabilidad,
             'tirada'            => $tirada,
             'fuga_ocurre'       => $fugaOcurre,
             'estado_final'      => $estadoFinal,
             'detalles'          => $detalles,
+            'dinosaurios_en_riesgo' => $celda->dinosaurios->where('dieta', 'carnivoro')
+                ->map(fn($d) => ['nick' => $d->nick, 'raza' => $d->raza, 'peligrosidad' => $d->nivel_peligrosidad])
+                ->values(),
         ];
 
         $sim = Simulacion::create([

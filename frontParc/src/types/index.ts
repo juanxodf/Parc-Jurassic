@@ -5,6 +5,7 @@ export interface User {
   email: string;
   role: 'admin' | 'veterinario' | 'mantenimiento';
   photo?: string | null;
+  photo_url?: string | null;
   created_at?: string;
 }
 

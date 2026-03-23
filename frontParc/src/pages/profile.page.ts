@@ -48,6 +48,7 @@ function renderProfileData(user: User): void {
   const nickEl  = document.getElementById('profile-nick');
   const roleEl  = document.getElementById('profile-role');
   const photoEl = document.getElementById('profile-photo') as HTMLImageElement | null;
+  const photoPreview = document.getElementById('photo-preview') as HTMLImageElement | null;
 
   if (nameEl)  nameEl.value      = user.name;
   if (emailEl) emailEl.value     = user.email;
@@ -55,11 +56,19 @@ function renderProfileData(user: User): void {
   if (roleEl)  roleEl.textContent = user.role;
 
   if (photoEl) {
-    const url = (user as User & { photo_url?: string }).photo_url;
+    const url = user.photo_url;
     if (url) {
-      photoEl.src              = url;
-      photoEl.style.display    = 'block';
+      photoEl.src = url;
+      photoEl.style.display = 'block';
+    } else {
+      photoEl.removeAttribute('src');
+      photoEl.style.display = 'none';
     }
+  }
+
+  if (photoPreview) {
+    photoPreview.removeAttribute('src');
+    photoPreview.style.display = 'none';
   }
 }
 
@@ -103,6 +112,7 @@ function setupProfileForm(): void {
       const token = localStorage.getItem('jp_token') ?? '';
       saveSession(token, updated);
       renderProfileData(updated);
+      renderNavbar();
       showSuccess('Perfil actualizado correctamente.');
       form.querySelector<HTMLInputElement>('[name="password"]')!.value              = '';
       form.querySelector<HTMLInputElement>('[name="password_confirmation"]')!.value = '';
