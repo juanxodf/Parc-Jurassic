@@ -6,22 +6,20 @@ import { ROUTES } from './constantes.ts';
 
 const path = window.location.pathname;
 
-// Redirigir raíz al login
 if (path === '/' || path === '/index.html') {
   window.location.replace(ROUTES.LOGIN);
 }
 
-// Proteger rutas privadas
-const PRIVATE: string[] = [ROUTES.LOBBY, ROUTES.ADMIN, ROUTES.GAME];
+const PRIVATE: string[] = [ROUTES.LOBBY, ROUTES.ADMIN, ROUTES.GAME, '/profile.html'];
 if (PRIVATE.includes(path) && !isAuthenticated()) {
   window.location.replace(ROUTES.LOGIN);
 }
 
-// Cargar estilos específicos de página + inicializar
 async function boot(): Promise<void> {
   if (path.includes('indexUI')) {
     const { initLoginForm } = await import('./pages/login.page.ts');
-    const { default: css } = await import('./styles/login.css?inline');
+    // el ?inline es una convención para indicar que queremos el contenido del archivo como string, en lugar de su URL
+    const { default: css }  = await import('./styles/login.css?inline');
     injectStyle(css);
     initLoginForm();
     return;
@@ -46,10 +44,16 @@ async function boot(): Promise<void> {
     await initGameUI();
     return;
   }
+
+  if (path.includes('profile')) {
+    const { initProfile } = await import('./pages/profile.page.ts');
+    await initProfile();
+    return;
+  }
 }
 
 function injectStyle(css: string): void {
-  const style = document.createElement('style');
+  const style       = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
 }

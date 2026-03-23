@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
@@ -20,8 +21,8 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role'     => 'in:admin,veterinario,mantenimiento',
         ], [
-            'nick.unique'    => 'El nick ya está en uso.',
-            'email.unique'   => 'El email ya está registrado.',
+            'nick.unique'        => 'El nick ya está en uso.',
+            'email.unique'       => 'El email ya está registrado.',
             'password.confirmed' => 'Las contraseñas no coinciden.',
         ]);
 
@@ -40,12 +41,9 @@ class AuthController extends Controller
         ]);
 
         $abilities = $role === 'admin' ? ['read', 'admin'] : ['read'];
-        $token = $user->createToken('auth_token', $abilities)->plainTextToken;
+        $token     = $user->createToken('auth_token', $abilities)->plainTextToken;
 
-        return response()->json([
-            'token' => $token,
-            'user'  => $user,
-        ], 201);
+        return response()->json(['token' => $token, 'user' => $user], 201);
     }
 
     public function login(Request $request): JsonResponse
@@ -68,12 +66,9 @@ class AuthController extends Controller
         $user->tokens()->delete();
 
         $abilities = $user->role === 'admin' ? ['read', 'admin'] : ['read'];
-        $token = $user->createToken('auth_token', $abilities)->plainTextToken;
+        $token     = $user->createToken('auth_token', $abilities)->plainTextToken;
 
-        return response()->json([
-            'token' => $token,
-            'user'  => $user,
-        ], 200);
+        return response()->json(['token' => $token, 'user' => $user], 200);
     }
 
     public function logout(Request $request): JsonResponse
@@ -93,7 +88,7 @@ class AuthController extends Controller
         $validator = Validator::make($request->all(), [
             'name'     => 'sometimes|string|max:255',
             'password' => 'sometimes|string|min:8|confirmed',
-            'photo'    => 'sometimes|string',
+            'photo'    => 'sometimes|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -101,14 +96,40 @@ class AuthController extends Controller
         }
 
         $user = $request->user();
-        $data = $request->only(['name', 'photo']);
+        $data = [];
+
+        if ($request->filled('name')) {
+            $data['name'] = $request->name;
+        }
 
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
         }
 
+        if ($request->hasFile('photo')) {
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+            $path         = $request->file('photo')->store('avatars', 'public');
+            $data['photo'] = $path;
+        }
+
         $user->update($data);
 
+        if ($request->hasFile('photo')) {
+            if ($user->photo) {
+                Storage::disk('public')->delete($user->photo);
+            }
+        $path = $request->file('photo')->store('avatars', 'public');
+        $data['photo'] = $path;
+        }
+
+        $user->update($data);
+
+        $user->photo_url = $user->photo
+            ? asset('storage/' . $user->photo)
+            : null;
+            
         return response()->json($user, 200);
     }
 }
