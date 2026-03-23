@@ -1,9 +1,4 @@
-export const API_BASE_URL = 'http://localhost:8000/api';
-
-export const PUSHER_APP_KEY = 'jurassickey';
-export const PUSHER_CLUSTER = 'mt1';
-export const PUSHER_HOST = 'localhost';
-export const PUSHER_PORT = 8080;
+export const API_BASE_URL = import.meta.env['VITE_API_BASE_URL'] ?? 'http://localhost:8000/api';
 
 export const TOKEN_KEY = 'jp_token';
 export const USER_KEY = 'jp_user';

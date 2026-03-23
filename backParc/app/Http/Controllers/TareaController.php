@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\TareaUpdated;
 use App\Models\Tarea;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -43,7 +44,10 @@ class TareaController extends Controller
             'estado'      => 'pendiente',
         ]);
 
-        return response()->json($tarea->load(['celda:id,nombre', 'user:id,nick']), 201);
+        $tarea->load(['celda:id,nombre', 'user:id,nick']);
+        broadcast(new TareaUpdated($tarea, 'created'));
+
+        return response()->json($tarea, 201);
     }
 
     public function iniciar(Request $request, Tarea $tarea): JsonResponse
@@ -59,6 +63,7 @@ class TareaController extends Controller
         }
 
         $tarea->iniciar();
+        broadcast(new TareaUpdated($tarea->fresh(), 'started'));
 
         return response()->json($tarea, 200);
     }
@@ -76,13 +81,17 @@ class TareaController extends Controller
         }
 
         $tarea->finalizar();
+        broadcast(new TareaUpdated($tarea->fresh(), 'finished'));
 
         return response()->json($tarea, 200);
     }
 
     public function destroy(Tarea $tarea): JsonResponse
     {
+        $tareaSnapshot = $tarea->replicate();
+        $tareaSnapshot->id = $tarea->id;
         $tarea->delete();
+        broadcast(new TareaUpdated($tareaSnapshot, 'deleted'));
 
         return response()->json(['message' => 'Tarea eliminada correctamente.'], 200);
     }

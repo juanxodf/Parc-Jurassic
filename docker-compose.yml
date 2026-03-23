@@ -27,7 +27,7 @@ services:
       PMA_USER: jurassic
       PMA_PASSWORD: jurassic123
     ports:
-      - "8080:80"
+      - "8081:80"
     depends_on:
       - mysql
 
@@ -51,6 +51,18 @@ services:
       DB_PASSWORD: jurassic123
       APP_URL: http://localhost:8000
       FILESYSTEM_DISK: public
+      BROADCAST_CONNECTION: reverb
+      REVERB_APP_ID: jurassic
+      REVERB_APP_KEY: jurassickey
+      REVERB_APP_SECRET: jurassicsecret
+      REVERB_HOST: localhost
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
+      REVERB_SERVER_HOST: 0.0.0.0
+      REVERB_SERVER_PORT: 8080
+      REVERB_BROADCAST_HOST: reverb
+      REVERB_BROADCAST_PORT: 8080
+      REVERB_BROADCAST_SCHEME: http
     depends_on:
       mysql:
         condition: service_healthy
@@ -60,6 +72,40 @@ services:
              (php artisan db:seed --force --no-interaction || true) &&
              php artisan storage:link --force &&
              php artisan serve --host=0.0.0.0 --port=8000"
+
+  reverb:
+    build:
+      context: ./backParc
+      dockerfile: Dockerfile
+    container_name: jurassic_reverb
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./backParc:/var/www
+    ports:
+      - "8080:8080"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: jurassic_park
+      DB_USERNAME: jurassic
+      DB_PASSWORD: jurassic123
+      BROADCAST_CONNECTION: reverb
+      REVERB_APP_ID: jurassic
+      REVERB_APP_KEY: jurassickey
+      REVERB_APP_SECRET: jurassicsecret
+      REVERB_HOST: localhost
+      REVERB_PORT: 8080
+      REVERB_SCHEME: http
+      REVERB_SERVER_HOST: 0.0.0.0
+      REVERB_SERVER_PORT: 8080
+    depends_on:
+      mysql:
+        condition: service_healthy
+    command: >
+      sh -c "composer install --no-interaction &&
+             php artisan reverb:start --host=0.0.0.0 --port=8080 --no-interaction"
 
   frontend:
     image: node:20

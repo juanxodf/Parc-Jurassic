@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CeldaUpdated;
 use App\Models\Dinosaurio;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,7 +62,13 @@ class DinosaurioController extends Controller
             'nivel_peligrosidad' => $defaults['nivel_peligrosidad'],
         ]);
 
-        return response()->json($dino->load('celda'), 201);
+        $dino->load('celda');
+
+        if ($dino->celda) {
+            broadcast(new CeldaUpdated($dino->celda->fresh(), 'updated'));
+        }
+
+        return response()->json($dino, 201);
     }
 
     public function update(Request $request, Dinosaurio $dinosaurio): JsonResponse
@@ -78,14 +85,37 @@ class DinosaurioController extends Controller
             return response()->json($validator->errors(), 422);
         }
 
+        $originalCeldaId = $dinosaurio->celda_id;
         $dinosaurio->update($request->only(['nick', 'edad', 'descripcion', 'estado', 'celda_id']));
+        $dinosaurio->load('celda');
 
-        return response()->json($dinosaurio->load('celda'), 200);
+        if ($originalCeldaId) {
+            $previousCelda = \App\Models\Celda::find($originalCeldaId);
+
+            if ($previousCelda) {
+                broadcast(new CeldaUpdated($previousCelda, 'updated'));
+            }
+        }
+
+        if ($dinosaurio->celda) {
+            broadcast(new CeldaUpdated($dinosaurio->celda->fresh(), 'updated'));
+        }
+
+        return response()->json($dinosaurio, 200);
     }
 
     public function destroy(Dinosaurio $dinosaurio): JsonResponse
     {
+        $celdaId = $dinosaurio->celda_id;
         $dinosaurio->delete();
+
+        if ($celdaId) {
+            $celda = \App\Models\Celda::find($celdaId);
+
+            if ($celda) {
+                broadcast(new CeldaUpdated($celda, 'updated'));
+            }
+        }
 
         return response()->json(['message' => 'Dinosaurio eliminado correctamente.'], 200);
     }

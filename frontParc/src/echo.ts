@@ -1,37 +1,36 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
-import { PUSHER_APP_KEY, PUSHER_CLUSTER, PUSHER_HOST, PUSHER_PORT } from './constantes.ts';
 import { getToken } from './models/auth.model.ts';
 import { API_BASE_URL } from './constantes.ts';
 
-// Pusher necesita ser global para que Echo lo encuentre
 (window as unknown as Record<string, unknown>)['Pusher'] = Pusher;
 
-let echoInstance: Echo<'pusher'> | null = null;
+type ReverbEcho = Echo<'reverb'>;
+
+let echoInstance: ReverbEcho | null = null;
+
+const REVERB_KEY = import.meta.env['VITE_REVERB_APP_KEY'] ?? 'jurassickey';
+const REVERB_HOST = import.meta.env['VITE_REVERB_HOST'] ?? window.location.hostname ?? 'localhost';
+const REVERB_PORT = Number.parseInt(import.meta.env['VITE_REVERB_PORT'] ?? '8080', 10);
+const REVERB_SCHEME = import.meta.env['VITE_REVERB_SCHEME'] ?? 'http';
 const REALTIME_ENABLED = (import.meta.env['VITE_REALTIME_ENABLED'] ?? 'false') === 'true';
 
 export function isRealtimeEnabled(): boolean {
   return REALTIME_ENABLED;
 }
 
-export function getEcho(): Echo<'pusher'> {
-  if (!REALTIME_ENABLED) {
-    throw new Error('Realtime desactivado');
-  }
+export function getEcho(): ReverbEcho {
+  if (!REALTIME_ENABLED) throw new Error('Realtime desactivado');
   if (echoInstance) return echoInstance;
 
   echoInstance = new Echo({
-    broadcaster: 'pusher',
-    key: PUSHER_APP_KEY,
-    cluster: PUSHER_CLUSTER,
-    wsHost: PUSHER_HOST,
-    wsPort: PUSHER_PORT,
-    wssPort: PUSHER_PORT,
+    broadcaster: 'reverb',
+    key: REVERB_KEY,
+    wsHost: REVERB_HOST,
+    wsPort: Number.isNaN(REVERB_PORT) ? 8080 : REVERB_PORT,
+    wssPort: Number.isNaN(REVERB_PORT) ? 8080 : REVERB_PORT,
+    forceTLS: REVERB_SCHEME === 'https',
     enabledTransports: ['ws', 'wss'],
-    httpHost: PUSHER_HOST,
-    httpPort: PUSHER_PORT,
-    httpsPort: PUSHER_PORT,
-    forceTLS: false,
     disableStats: true,
     authEndpoint: `${API_BASE_URL}/broadcasting/auth`,
     auth: {
@@ -39,7 +38,7 @@ export function getEcho(): Echo<'pusher'> {
     },
   });
 
-  return echoInstance;
+  return echoInstance as ReverbEcho;
 }
 
 export function disconnectEcho(): void {

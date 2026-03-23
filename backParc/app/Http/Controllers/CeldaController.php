@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CeldaUpdated;
 use App\Models\Celda;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -56,6 +57,7 @@ class CeldaController extends Controller
         }
 
         $celda = Celda::create($request->all());
+        broadcast(new CeldaUpdated($celda->fresh(), 'created'));
 
         return response()->json($celda, 201);
     }
@@ -76,13 +78,17 @@ class CeldaController extends Controller
         }
 
         $celda->update($request->all());
+        broadcast(new CeldaUpdated($celda->fresh(), 'updated'));
 
         return response()->json($celda, 200);
     }
 
     public function destroy(Celda $celda): JsonResponse
     {
+        $celdaSnapshot = $celda->replicate();
+        $celdaSnapshot->id = $celda->id;
         $celda->delete();
+        broadcast(new CeldaUpdated($celdaSnapshot, 'deleted'));
 
         return response()->json(['message' => 'Celda eliminada correctamente.'], 200);
     }

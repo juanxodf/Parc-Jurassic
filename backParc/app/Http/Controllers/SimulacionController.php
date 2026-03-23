@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\CeldaUpdated;
 use App\Models\Celda;
 use App\Models\Simulacion;
 use Illuminate\Http\JsonResponse;
@@ -24,6 +25,7 @@ class SimulacionController extends Controller
                 'cantidad_alimento'  => $nuevaComida,
                 'averias_pendientes' => $nuevasAverias,
             ]);
+            broadcast(new CeldaUpdated($celda->fresh(), 'updated'));
 
             $alertas = [];
             if ($nuevaComida < 20)        $alertas[] = 'Alimento crítico';
@@ -94,6 +96,7 @@ class SimulacionController extends Controller
 
         if ($fugaOcurre) {
             $celda->update(['estado' => 'brecha']);
+            broadcast(new CeldaUpdated($celda->fresh(), 'updated'));
             $estadoFinal = 'desastre';
             $detalles[]  = "BRECHA EN {$celda->nombre}";
 
