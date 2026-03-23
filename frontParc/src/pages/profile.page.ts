@@ -48,6 +48,7 @@ function renderProfileData(user: User): void {
   const nickEl  = document.getElementById('profile-nick');
   const roleEl  = document.getElementById('profile-role');
   const photoEl = document.getElementById('profile-photo') as HTMLImageElement | null;
+  const placeholderEl = document.getElementById('profile-avatar-placeholder');
   const photoPreview = document.getElementById('photo-preview') as HTMLImageElement | null;
 
   if (nameEl)  nameEl.value      = user.name;
@@ -59,16 +60,18 @@ function renderProfileData(user: User): void {
     const url = user.photo_url;
     if (url) {
       photoEl.src = url;
-      photoEl.style.display = 'block';
+      photoEl.classList.remove('hidden');
+      placeholderEl?.classList.add('hidden');
     } else {
       photoEl.removeAttribute('src');
-      photoEl.style.display = 'none';
+      photoEl.classList.add('hidden');
+      placeholderEl?.classList.remove('hidden');
     }
   }
 
   if (photoPreview) {
     photoPreview.removeAttribute('src');
-    photoPreview.style.display = 'none';
+    photoPreview.classList.add('hidden');
   }
 }
 
@@ -82,8 +85,11 @@ function setupProfileForm(): void {
   photoInput?.addEventListener('change', () => {
     const file = photoInput.files?.[0];
     if (file && photoPreview) {
-      photoPreview.src          = URL.createObjectURL(file);
-      photoPreview.style.display = 'block';
+      photoPreview.src = URL.createObjectURL(file);
+      photoPreview.classList.remove('hidden');
+    } else {
+      photoPreview?.removeAttribute('src');
+      photoPreview?.classList.add('hidden');
     }
   });
 

@@ -80,7 +80,7 @@ async function loadMisTareas(): Promise<void> {
     bindTareaButtons(container, misTareas);
     await renderDinoResumen();
   } catch {
-    container.innerHTML = '<p class="loader" style="color:var(--color-danger)">Error al cargar tareas.</p>';
+    container.innerHTML = '<p class="loader text-danger">Error al cargar tareas.</p>';
     showError('No se pudieron cargar las tareas.');
   }
 }
@@ -93,12 +93,12 @@ function renderTareaCard(t: Tarea): string {
     : '';
 
   return `
-    <div class="card" style="margin-bottom:12px">
-      <div class="flex-row" style="justify-content:space-between;margin-bottom:8px">
+    <div class="card card-stack">
+      <div class="flex-row justify-between mb-2">
         <strong>${t.descripcion ?? 'Sin descripción'}</strong>
         <span class="badge badge-gray">${t.tipo}</span>
       </div>
-      <div style="font-size:12px;color:var(--color-muted);margin-bottom:8px">
+      <div class="text-muted mb-2">
         ${ESTADO_TAREA_LABEL[t.estado] ?? t.estado} · ${t.celda?.nombre ?? 'Sin celda'}
       </div>
       <div class="flex-row">${acciones}</div>
@@ -139,17 +139,17 @@ async function renderDinoResumen(): Promise<void> {
       .slice(0, 5);
 
     if (peligrosos.length === 0) {
-      container.innerHTML = '<p style="font-size:12px;color:var(--color-muted)">Sin alertas críticas.</p>';
+      container.innerHTML = '<p class="text-muted">Sin alertas críticas.</p>';
       return;
     }
 
     container.innerHTML = peligrosos.map(d => `
       <div class="dino-list-item">
-        <span><strong>${d.nick}</strong> <span style="color:var(--color-muted)">(${d.raza})</span></span>
-        <span style="font-size:11px">${NIVEL_PELIGROSIDAD_LABEL[d.nivel_peligrosidad] ?? d.nivel_peligrosidad}</span>
+        <span><strong>${d.nick}</strong> <span class="text-muted">(${d.raza})</span></span>
+        <span class="text-xs">${NIVEL_PELIGROSIDAD_LABEL[d.nivel_peligrosidad] ?? d.nivel_peligrosidad}</span>
       </div>`).join('');
   } catch {
-    container.innerHTML = '<p style="font-size:12px;color:var(--color-danger)">Error al cargar alertas.</p>';
+    container.innerHTML = '<p class="text-danger">Error al cargar alertas.</p>';
   }
 }
 

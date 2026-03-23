@@ -14,7 +14,7 @@
       <a href="/lobby.html">Lobby</a>
       <a href="/gameUI.html">Mapa</a>
       <a href="/profile.html">Mi perfil</a>
-      <button id="logout-btn" class="btn-ghost" style="padding:4px 12px;font-size:12px">Salir</button>
+      <button id="logout-btn" class="btn-ghost btn-sm">Salir</button>
     </div>
   </nav>
 
@@ -32,7 +32,7 @@
 
     <!-- USUARIOS -->
     <div id="tab-usuarios" class="tab-panel">
-      <div class="grid-2" style="gap:24px">
+      <div class="grid-2 grid-gap-lg">
         <div>
           <p class="section-title">Lista de usuarios</p>
           <table>
@@ -77,7 +77,7 @@
 
     <!-- CELDAS -->
     <div id="tab-celdas" class="tab-panel hidden">
-      <div class="grid-2" style="gap:24px">
+      <div class="grid-2 grid-gap-lg">
         <div>
           <p class="section-title">Celdas registradas</p>
           <table>
@@ -130,7 +130,7 @@
 
     <!-- DINOSAURIOS -->
     <div id="tab-dinosaurios" class="tab-panel hidden">
-      <div class="grid-2" style="gap:24px">
+      <div class="grid-2 grid-gap-lg">
         <div>
           <p class="section-title">Dinosaurios registrados</p>
           <table>
@@ -181,7 +181,7 @@
 
     <!-- SIMULACIONES -->
     <div id="tab-simulaciones" class="tab-panel hidden">
-      <div class="grid-2" style="gap:24px">
+      <div class="grid-2 grid-gap-lg">
         <div>
           <p class="section-title">Historial de simulaciones</p>
           <table>
@@ -199,7 +199,7 @@
                   <option value="">Aleatoria</option>
                 </select>
               </div>
-              <div class="flex-row" style="margin-top:8px;gap:8px">
+              <div class="flex-row mt-2 gap-2">
                 <button type="button" class="btn-primary" data-sim-type="normal">🔬 Normal</button>
                 <button type="button" class="btn-danger"  data-sim-type="brecha">⚠ Brecha</button>
               </div>
@@ -212,7 +212,7 @@
 
   <!-- Modal de resultado -->
   <div id="result-modal" class="modal-overlay">
-    <div class="modal" style="max-width:640px">
+    <div class="modal modal-sm">
       <div class="modal-header">
         <span></span>
         <button class="modal-close" id="modal-close-btn">×</button>

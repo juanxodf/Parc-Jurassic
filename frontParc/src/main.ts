@@ -1,4 +1,7 @@
-import './styles/global.css';
+import './styles/variables.css';
+import './styles/base.css';
+import './styles/components.css';
+import './styles/utilities.css';
 import './styles/layout.css';
 
 import { isAuthenticated } from './models/auth.model.ts';

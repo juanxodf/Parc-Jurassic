@@ -66,7 +66,7 @@ async function loadGrid(): Promise<void> {
       gridEl.appendChild(card);
     });
   } catch {
-    gridEl.innerHTML = '<p class="loader" style="color:var(--color-danger)">Error al cargar el mapa.</p>';
+    gridEl.innerHTML = '<p class="loader text-danger">Error al cargar el mapa.</p>';
     showError('No se pudo cargar el mapa del parque.');
   }
 }
@@ -80,14 +80,14 @@ function buildCeldaCard(c: Celda): HTMLElement {
   const tareasPend = allTareas.filter(t => t.celda_id === c.id && t.estado !== 'finalizada').length;
 
   div.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+    <div class="inline-flex justify-between items-start">
       <span class="celda-nombre">${c.nombre}</span>
       <div class="celda-estado-dot"></div>
     </div>
     <span class="celda-dinos">${dinos.length} dinos</span>
-    <span style="font-size:9px;color:var(--color-muted)">
+    <span class="text-xs text-muted">
       Seg. ${c.nivel_seguridad} · ${c.cantidad_alimento}% alim.
-      ${tareasPend > 0 ? `· <span style="color:var(--color-warning)">${tareasPend} tarea(s)</span>` : ''}
+      ${tareasPend > 0 ? `· <span class="text-warning">${tareasPend} tarea(s)</span>` : ''}
     </span>`;
 
   return div;
@@ -117,12 +117,12 @@ function renderCeldaDetail(c: Celda): void {
       ${c.notas ? `<div class="stat-row"><span class="stat-label">Notas</span><span>${c.notas}</span></div>` : ''}
     </div>
     ${dinos.length > 0 ? `
-      <div style="margin-top:16px">
+      <div class="mt-5">
         <p class="section-title">Dinosaurios</p>
         ${dinos.map(d => `
           <div class="dino-list-item">
-            <span><strong>${d.nick}</strong> <span style="color:var(--color-muted)">${d.raza}</span></span>
-            <span style="font-size:11px">${NIVEL_PELIGROSIDAD_LABEL[d.nivel_peligrosidad] ?? d.nivel_peligrosidad}</span>
+            <span><strong>${d.nick}</strong> <span class="text-muted">${d.raza}</span></span>
+            <span class="text-xs">${NIVEL_PELIGROSIDAD_LABEL[d.nivel_peligrosidad] ?? d.nivel_peligrosidad}</span>
           </div>`).join('')}
       </div>` : ''}`;
 }
@@ -135,7 +135,7 @@ function renderTareasCelda(celdaId: number): void {
   el.innerHTML = `<p class="section-title">Tareas de la celda</p>`;
 
   if (tareas.length === 0) {
-    el.innerHTML += '<p style="font-size:12px;color:var(--color-muted)">Sin tareas.</p>';
+    el.innerHTML += '<p class="text-muted">Sin tareas.</p>';
     return;
   }
 
@@ -144,14 +144,14 @@ function renderTareasCelda(celdaId: number): void {
       <div class="tarea-titulo">${t.descripcion ?? 'Sin descripción'}</div>
       <div class="tarea-meta">
         ${ESTADO_TAREA_LABEL[t.estado] ?? t.estado} · ${t.tipo}
-        ${t.user ? `· <span style="color:var(--color-primary)">${t.user.nick ?? t.user.name}</span>` : ''}
+        ${t.user ? `· <span class="text-primary">${t.user.nick ?? t.user.name}</span>` : ''}
       </div>
       <div class="tarea-actions">
         ${t.estado === 'pendiente'
-          ? `<button class="btn-ghost" style="padding:4px 8px;font-size:11px" data-iniciar="${t.id}">Iniciar</button>`
+          ? `<button class="btn-ghost btn-sm" data-iniciar="${t.id}">Iniciar</button>`
           : t.estado === 'en_progreso'
-          ? `<button class="btn-primary" style="padding:4px 8px;font-size:11px" data-finalizar="${t.id}">Finalizar</button>`
-          : '<span style="font-size:11px;color:var(--color-primary)">✓ Finalizada</span>'}
+          ? `<button class="btn-primary btn-sm" data-finalizar="${t.id}">Finalizar</button>`
+          : '<span class="text-xs text-primary">✓ Finalizada</span>'}
       </div>
     </div>`).join('');
 

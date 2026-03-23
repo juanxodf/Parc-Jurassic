@@ -1,44 +1,44 @@
 .game-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: 20px;
+  gap: var(--space-5);
   height: calc(100vh - 56px);
   overflow: hidden;
 }
 
 .game-map-area {
-  padding: 20px;
+  padding: var(--space-5);
   overflow-y: auto;
 }
 
 .game-sidebar {
   background: var(--color-surface);
   border-left: 1px solid var(--color-border);
-  padding: 20px;
+  padding: var(--space-5);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 .celda-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  gap: var(--space-2);
   max-width: 600px;
 }
 
 .celda-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  padding: 12px;
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
   cursor: pointer;
-  transition: border-color var(--transition), transform var(--transition);
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
   min-height: 80px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 .celda-card:hover { border-color: var(--color-primary); transform: scale(1.02); }
 .celda-card.selected { border-color: var(--color-primary); background: rgba(0,229,160,0.05); }
@@ -80,16 +80,16 @@
 .dino-list-item:last-child { border-bottom: none; }
 
 .tareas-list .tarea-item {
-  background: var(--color-bg);
+  background: var(--color-surface-soft);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   padding: 10px;
-  margin-bottom: 8px;
-  font-size: 12px;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-sm);
 }
-.tarea-item .tarea-titulo { font-weight: bold; margin-bottom: 4px; }
+.tarea-item .tarea-titulo { font-weight: bold; margin-bottom: var(--space-1); }
 .tarea-item .tarea-meta { color: var(--color-muted); }
-.tarea-item .tarea-actions { margin-top: 8px; display: flex; gap: 6px; }
+.tarea-item .tarea-actions { margin-top: var(--space-2); display: flex; gap: 6px; }
 
 @media (max-width: 900px) {
   .game-layout { grid-template-columns: 1fr; height: auto; }

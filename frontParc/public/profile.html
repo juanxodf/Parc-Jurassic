@@ -12,25 +12,24 @@
       <span id="navbar-user-name">—</span>
       <span class="role-badge" id="navbar-user-role">—</span>
       <a href="/lobby.html">Lobby</a>
-      <button id="logout-btn" class="btn-ghost" style="padding:4px 12px;font-size:12px">Salir</button>
+      <button id="logout-btn" class="btn-ghost btn-sm">Salir</button>
     </div>
   </nav>
 
-  <div class="page-container" style="max-width:600px">
+  <div class="page-container page-container-sm">
     <div class="page-header">
       <h1>Mi Perfil</h1>
     </div>
 
-    <div class="card" style="margin-bottom:24px;display:flex;align-items:center;gap:20px">
+    <div class="card profile-header mb-6">
       <img id="profile-photo"
            src=""
            alt="Foto de perfil"
-           style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--color-primary)" />
-      <div style="width:80px;height:80px;border-radius:50%;background:var(--color-border);
-                  display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">🦖</div>
+           class="profile-avatar rounded-full object-cover border-primary hidden" />
+      <div id="profile-avatar-placeholder" class="profile-avatar-placeholder rounded-full">🦖</div>
       <div>
-        <div style="font-size:18px;font-weight:bold;color:var(--color-primary)" id="profile-nick">—</div>
-        <div style="font-size:12px;color:var(--color-muted)" id="profile-role">—</div>
+        <div class="text-lg font-bold text-primary" id="profile-nick">—</div>
+        <div class="text-muted" id="profile-role">—</div>
       </div>
     </div>
 
@@ -44,19 +43,19 @@
         <div class="form-group">
           <label>Email</label>
           <input type="email" id="profile-email" name="email" disabled
-                 style="opacity:0.5;cursor:not-allowed" />
+                 class="opacity-50 cursor-disabled" />
         </div>
 
         <div class="form-group">
           <label>Foto de perfil</label>
           <input type="file" id="photo-input" name="photo" accept="image/jpg,image/jpeg,image/png,image/webp" />
           <img id="photo-preview" src="" alt="Vista previa"
-               style="display:none;margin-top:10px;width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--color-border)" />
+               class="profile-preview rounded-full object-cover border-soft hidden mt-2" />
         </div>
 
-        <hr style="border-color:var(--color-border);margin:20px 0" />
+        <hr class="mt-5 mb-5" />
 
-        <p style="font-size:12px;color:var(--color-muted);margin-bottom:12px">
+        <p class="text-muted mb-3">
           Deja estos campos vacíos si no quieres cambiar la contraseña
         </p>
 
@@ -70,7 +69,7 @@
           <input type="password" name="password_confirmation" placeholder="Repite la contraseña" />
         </div>
 
-        <button type="submit" class="btn-primary" style="width:100%">Guardar cambios</button>
+        <button type="submit" class="btn-primary btn-block">Guardar cambios</button>
       </form>
     </div>
   </div>

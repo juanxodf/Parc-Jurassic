@@ -84,8 +84,8 @@ async function loadUsuarios(): Promise<void> {
         <td><span class="badge badge-gray">${u.role}</span></td>
         <td>
           ${u.id !== me?.id
-            ? `<button class="btn-danger" style="padding:4px 10px;font-size:11px" data-delete-user="${u.id}">Eliminar</button>`
-            : '<span style="color:var(--color-muted);font-size:11px">Tu cuenta</span>'}
+            ? `<button class="btn-danger btn-sm" data-delete-user="${u.id}">Eliminar</button>`
+            : '<span class="text-xs text-muted">Tu cuenta</span>'}
         </td>
       </tr>`).join('');
 
@@ -158,7 +158,7 @@ async function loadCeldas(): Promise<void> {
         <td>${c.nivel_seguridad}</td>
         <td><span class="badge ${estadoBadge(c.estado)}">${c.estado}</span></td>
         <td>
-          <button class="btn-danger" style="padding:4px 10px;font-size:11px" data-delete-celda="${c.id}">Eliminar</button>
+          <button class="btn-danger btn-sm" data-delete-celda="${c.id}">Eliminar</button>
         </td>
       </tr>`).join('');
 
@@ -230,7 +230,7 @@ async function loadDinosaurios(): Promise<void> {
           <td>${d.dieta}</td>
           <td>${NIVEL_PELIGROSIDAD_LABEL[d.nivel_peligrosidad] ?? d.nivel_peligrosidad}</td>
           <td>
-            <button class="btn-danger" style="padding:4px 10px;font-size:11px" data-delete-dino="${d.id}">Eliminar</button>
+            <button class="btn-danger btn-sm" data-delete-dino="${d.id}">Eliminar</button>
           </td>
         </tr>`).join('');
 
@@ -335,11 +335,10 @@ async function loadSimulaciones(): Promise<void> {
         <td><span class="badge ${s.tipo === 'brecha' ? 'badge-red' : 'badge-green'}">${s.tipo}</span></td>
         <td>${s.celda?.nombre ?? 'Aleatoria'}</td>
         <td><span class="badge badge-gray">${s.estado ?? '—'}</span></td>
-        <td style="font-size:11px;color:var(--color-muted)">${new Date(s.created_at ?? '').toLocaleString('es-ES')}</td>
+        <td class="text-xs text-muted">${new Date(s.created_at ?? '').toLocaleString('es-ES')}</td>
         <td>
           <button
-            class="btn-ghost"
-            style="padding:4px 10px;font-size:11px"
+            class="btn-ghost btn-sm"
             data-view-sim="${s.id}"
           >Ver</button>
         </td>
@@ -478,7 +477,7 @@ function renderResultadoBrecha(result: ResultadoBrecha): string {
         `).join('')}
       </ul>
     `
-    : '<p class="loader" style="padding:12px 0">No hay dinosaurios carnívoros implicados.</p>';
+    : '<p class="loader loader-compact">No hay dinosaurios carnívoros implicados.</p>';
 
   return `
     <div class="sim-result">
@@ -489,7 +488,7 @@ function renderResultadoBrecha(result: ResultadoBrecha): string {
         </span>
         <span class="badge badge-gray">Estado final: ${data.estado_final}</span>
       </div>
-      <div class="card" style="padding:16px;margin-bottom:16px">
+      <div class="card card-compact mb-5">
         <p><strong>Celda:</strong> ${data.celda.nombre} (${data.celda.fila}/${data.celda.columna})</p>
         <p><strong>Probabilidad:</strong> ${data.probabilidad_fuga}%</p>
         <p><strong>Tirada:</strong> ${data.tirada}</p>
@@ -498,7 +497,7 @@ function renderResultadoBrecha(result: ResultadoBrecha): string {
       <ul class="sim-list">
         ${data.detalles.map(detalle => `<li>${detalle}</li>`).join('')}
       </ul>
-      <p class="section-title" style="margin-top:16px">Dinosaurios en riesgo</p>
+      <p class="section-title mt-5">Dinosaurios en riesgo</p>
       ${dinosaurios}
     </div>
   `;
